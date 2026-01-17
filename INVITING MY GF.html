@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Special Message for You ❤️</title>
+    <style>
+        :root {
+            --pink-primary: #ff4d6d;
+            --pink-soft: #ff85a1;
+            --bg-color: #fff0f3;
+            --text-dark: #590d22;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* --- Animasi Salju --- */
+        .snowflakes {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 0;
+        }
+
+        .snowflake {
+            position: absolute; top: -10px; color: white;
+            font-size: 1em; user-select: none;
+            animation: fall linear infinite;
+        }
+
+        @keyframes fall {
+            0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(110vh) rotate(360deg); opacity: 0; }
+        }
+
+        /* --- Pop Up / Modal --- */
+        .overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex; justify-content: center; align-items: center;
+            z-index: 1000; 
+            transition: all 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        .popup {
+            background: white; padding: 30px; border-radius: 25px;
+            text-align: center; max-width: 350px; width: 80%;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            transition: all 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        /* Efek Meluncur ke Bawah */
+        .slide-down {
+            transform: translateY(120vh) !important;
+            opacity: 0;
+        }
+
+        /* --- Konten Utama --- */
+        #main-card {
+            background: rgba(255, 255, 255, 0.85);
+            padding: 30px; border-radius: 30px;
+            box-shadow: 0 15px 40px rgba(255, 77, 109, 0.2);
+            text-align: center; max-width: 450px; width: 85%;
+            z-index: 10; backdrop-filter: blur(8px);
+            display: none;
+            animation: fadeIn 1s ease forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .emoji-header { font-size: 50px; margin-bottom: 10px; }
+        h1 { color: #800f2f; margin-bottom: 10px; font-size: 22px; }
+        p { color: #a4133c; line-height: 1.5; font-size: 15px; }
+
+        .btn-group { margin-top: 30px; min-height: 60px; position: relative; }
+
+        button {
+            padding: 14px 28px; font-size: 16px; font-weight: bold;
+            border-radius: 15px; border: none; cursor: pointer; transition: 0.3s;
+        }
+
+        .btn-main { background-color: var(--pink-primary); color: white; }
+        .btn-main:hover { transform: scale(1.05); background-color: #ff1f4b; }
+        
+        #noBtn {
+            background-color: #e9ecef; color: #6c757d;
+            position: absolute; white-space: nowrap;
+        }
+
+        #rundown-section {
+            display: none; text-align: left; opacity: 0;
+            transform: translateY(20px); transition: 0.8s ease;
+        }
+
+        .timeline {
+            border-left: 2px dashed var(--pink-soft);
+            margin-left: 20px; padding-left: 20px; margin-top: 20px;
+        }
+
+        .rundown-item {
+            position: relative; margin-bottom: 15px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 10px 15px; border-radius: 15px;
+            border: 1px solid #ffe3e8;
+        }
+
+        .rundown-item::before {
+            content: ""; width: 12px; height: 12px;
+            background: var(--pink-primary); border-radius: 50%;
+            position: absolute; left: -27px; top: 15px;
+        }
+
+        .time { font-weight: bold; color: var(--pink-primary); font-size: 13px; }
+        .activity { color: var(--text-dark); font-size: 14px; font-weight: 500; display: block; }
+
+        .show { display: block !important; opacity: 1 !important; transform: translateY(0) !important; }
+    </style>
+</head>
+<body>
+
+    <div class="overlay" id="initialPopup">
+        <div class="popup" id="popupBox">
+            <div style="font-size: 40px;">🎁</div>
+            <h2 style="color: #800f2f;">Halo Cantik!</h2>
+            <p>Ada pesan singkat buat kamu di dalam sini...</p>
+            <button class="btn-main" onclick="animatePopupOut()">Buka Pesan</button>
+        </div>
+    </div>
+
+    <div class="overlay" id="confirmPopup" style="display: none;">
+        <div class="popup" id="confirmBox">
+            <div style="font-size: 40px;">🥰</div>
+            <h2 style="color: #800f2f;">Hehehe...</h2>
+            <p>Makasih ya udah mau! Aku udah siapin jadwal main buat kita, maaf yaa tadi hari ini malah kita gajadi main :' aku salah, udah ngebuat kacau hari ini</p>
+            <button class="btn-main" onclick="animateConfirmOut()">Lihat Jadwal</button>
+        </div>
+    </div>
+
+    <div class="snowflakes" id="snowContainer"></div>
+
+    <audio id="mySong">
+        <source src="lagu.mp3" type="audio/mpeg">
+    </audio>
+
+    <div id="main-card">
+        <div id="invitation-content">
+            <div class="emoji-header">💌</div>
+            <h1>Kita Main ke Blok M Yuk?</h1>
+            <p>Aku jemput jam 11:00, kita naik kereta terus kulineran & nonton film bareng. Mau ya?</p>
+            <div class="btn-group">
+                <button id="yesBtn" class="btn-main" onclick="openConfirmation()">MAU BANGET!</button>
+                <button id="noBtn" onmouseover="moveButton()">Nggak Dulu</button>
+            </div>
+        </div>
+
+        <div id="rundown-section">
+            <div class="emoji-header">💖</div>
+            <h2 style="color: #800f2f; text-align: center; font-size: 20px;">Yeay! I'm so happy!</h2>
+            
+            <div class="timeline">
+                <div class="rundown-item">
+                    <span class="time">11:00 - 11:15</span>
+                    <span class="activity">🚗 Aku OTW ke rumah kamu</span>
+                </div>
+                <div class="rundown-item">
+                    <span class="time">11:15 - 13:15</span>
+                    <span class="activity">🚆 Perjalanan Tj. Priok ke Blok M (Via Kereta/MRT) Atau Mau Motoran?</span>
+                </div>
+                <div class="rundown-item">
+                    <span class="time">13:15 - 14:30</span>
+                    <span class="activity">🍱 Makan siang enak di Blok M</span>
+                </div>
+                <div class="rundown-item">
+                    <span class="time">14:30 - 16:00</span>
+                    <span class="activity">📸 Jalan santai & Foto di Taman Literasi</span>
+                </div>
+                <div class="rundown-item">
+                    <span class="time">16:15</span>
+                    <span class="activity">🎬 Showtime! Nonton Bioskop</span>
+                </div>
+                <div class="rundown-item">
+                    <span class="time">19:00</span>
+                    <span class="activity">🏠 Perjalanan Pulang</span>
+                </div>
+            </div>
+            
+            <p style="font-size: 12px; color: #ff85a1; text-align: center; margin-top: 20px;">
+                <i>*Dengerin musiknya ya sayang...
+                    SUPERMINE IS HERE🤍*</i>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        function createSnow() {
+            const container = document.getElementById('snowContainer');
+            const icons = ['❄', '❅', '❆', '🤍', '🌸'];
+            for (let i = 0; i < 30; i++) {
+                const snow = document.createElement('div');
+                snow.className = 'snowflake';
+                snow.innerHTML = icons[Math.floor(Math.random() * icons.length)];
+                snow.style.left = Math.random() * 100 + 'vw';
+                snow.style.animationDuration = (Math.random() * 3 + 2) + 's';
+                snow.style.opacity = Math.random();
+                snow.style.fontSize = (Math.random() * 10 + 10) + 'px';
+                container.appendChild(snow);
+                snow.addEventListener('animationiteration', () => {
+                    snow.style.left = Math.random() * 100 + 'vw';
+                });
+            }
+        }
+        createSnow();
+
+        // Animasi keluar untuk popup awal
+        function animatePopupOut() {
+            const popup = document.getElementById('popupBox');
+            const overlay = document.getElementById('initialPopup');
+            
+            popup.classList.add('slide-down');
+            overlay.style.background = "transparent";
+            
+            setTimeout(() => {
+                overlay.style.display = 'none';
+                document.getElementById('main-card').style.display = 'block';
+            }, 800);
+        }
+
+        function openConfirmation() {
+            document.getElementById("mySong").play();
+            document.getElementById('confirmPopup').style.display = 'flex';
+        }
+
+        // Animasi keluar untuk popup konfirmasi
+        function animateConfirmOut() {
+            const popup = document.getElementById('confirmBox');
+            const overlay = document.getElementById('confirmPopup');
+            
+            popup.classList.add('slide-down');
+            overlay.style.background = "transparent";
+
+            setTimeout(() => {
+                overlay.style.display = 'none';
+                document.getElementById('invitation-content').style.display = 'none';
+                document.getElementById('rundown-section').classList.add('show');
+            }, 800);
+        }
+
+        function moveButton() {
+            const noBtn = document.getElementById('noBtn');
+            const x = Math.random() * (window.innerWidth - noBtn.offsetWidth);
+            const y = Math.random() * (window.innerHeight - noBtn.offsetHeight);
+            noBtn.style.position = 'fixed';
+            noBtn.style.left = x + 'px';
+            noBtn.style.top = y + 'px';
+        }
+    </script>
+</body>
+</html>
